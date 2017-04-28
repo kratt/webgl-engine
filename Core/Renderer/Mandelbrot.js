@@ -45,7 +45,7 @@ Pixel.Core.Renderer.Mandelbrot.prototype =
 
     createShaders : function()
     {
-        this.shader  = new Pixel.Core.OpenGL.Shader(this.gl, 'fractal_mandelbrot');
+        this.shader  = new Pixel.Core.OpenGL.Shader(this.gl, "webgl_engine/Data/Shader/Fractals/Mandelbrot.vert.glsl", "webgl_engine/Data/Shader/Fractals/Mandelbrot.frag.glsl");
     },
 
     createVBOScreenSizeQuad : function()
@@ -126,7 +126,7 @@ Pixel.Core.Renderer.Mandelbrot.prototype =
 
         var model      = new mat4().translateByVector(new vec3(0, 0, 0));
         var view       = new mat4().translateByVector(new vec3 (0, 0, -1));
-        var projection = new mat4().orthographic(0, window.innerWidth, window.innerHeight, 0, -1, 1);
+        var projection = new mat4().orthographic(0, this.width, this.height, 0, -1, 1);
 
         this.shader.bind();
 
@@ -135,8 +135,8 @@ Pixel.Core.Renderer.Mandelbrot.prototype =
         this.shader.setMatrix("matModel", model, false);
 
 
-        this.shader.setf("windowWidth",  window.innerWidth);
-        this.shader.setf("windowHeight", window.innerHeight);
+        this.shader.setf("windowWidth",  this.width);
+        this.shader.setf("windowHeight", this.height);
 
         this.shader.setf("minRe", this.minRe);
         this.shader.setf("maxRe", this.maxRe);

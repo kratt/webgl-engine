@@ -4,11 +4,12 @@
  * @author Julian Kratt
  */
 
-Pixel.Core.OpenGL.Shader = function(openGLContext, file)
+Pixel.Core.OpenGL.Shader = function(openGLContext, vShaderPath, fShaderPath)
 {
-    var vShaderCode;
-    var fShaderCode;
+    var vShaderCode = this.loadShaderSrc(vShaderPath);
+    var fShaderCode = this.loadShaderSrc(fShaderPath);
 
+    /*
     if(file == 'default')
     {
         vShaderCode = this.loadShaderSrc("webgl_engine/Data/Shader/default/Default.vert.glsl");
@@ -68,7 +69,7 @@ Pixel.Core.OpenGL.Shader = function(openGLContext, file)
         vShaderCode = this.loadShaderSrc("webgl_engine/Data/Shader/GameOfLife/GoLInteraction.vert.glsl");
         fShaderCode = this.loadShaderSrc("webgl_engine/Data/Shader/GameOfLife/GoLInteraction.frag.glsl");
     }
-
+    */
     this.gl = openGLContext;
     this.webGLProgramObject = this.gl.createProgram();
 
@@ -163,14 +164,9 @@ Pixel.Core.OpenGL.Shader.prototype = {
    loadShaderSrc : function(fileUrl)
     {
         var http = new XMLHttpRequest();
-        var fileContent;
-        http.open("GET", fileUrl, false);
-        http.setRequestHeader(
-        "Content-Type",
-        "application/x-www-form-urlencoded");
+        http.open("GET", fileUrl+'?'+(new Date()).getTime(), false) // force reload
         http.send(null);
-        fileContent = http.responseText;
+        return http.responseText;
 
-        return fileContent;
     }
 }
