@@ -220,7 +220,7 @@ Pixel.Core.Renderer.Mandelbrot.prototype =
 
         */
 
-
+/*
         var distRe = (this.maxRe - this.minRe);
         var distIm = (this.maxIm - this.minIm);
 
@@ -244,7 +244,33 @@ Pixel.Core.Renderer.Mandelbrot.prototype =
             this.minIm -= amountIm;
             this.maxIm = this.minIm + (this.maxRe - this.minRe) * window.innerWidth / window.innerHeight;
         }
+        */
 
+        var focusRe = mouseX * (this.maxRe - this.minRe) + this.minRe;
+        var focusIm = mouseY * (this.maxIm - this.minIm) + this.minIm;
+
+        var zoomAmount = 0.05;
+
+
+        if(delta < 0)
+        {
+            this.minRe = this.minRe + zoomAmount * (focusRe - this.minRe);
+            this.maxRe = this.maxRe - zoomAmount * (this.maxRe - focusRe);
+
+            this.minIm = this.minIm - zoomAmount * (focusIm - this.minIm);
+            this.maxIm = this.maxIm + zoomAmount * (this.maxIm - focusIm);
+        }
+        else
+        {
+            /*this.minRe = this.minRe - zoomAmount * (focusRe - this.minRe);
+            this.maxRe = this.maxRe + zoomAmount * (this.maxRe - focusRe);
+
+            this.minIm = this.minIm + zoomAmount * (focusIm - this.minIm);
+            this.maxIm = this.maxIm - zoomAmount * (this.maxIm - focusIm);*/
+        }
+
+
+        console.log(mouseX + " " + mouseY);
     },
 
     onMouseMove : function(dx, dy)
@@ -268,6 +294,25 @@ Pixel.Core.Renderer.Mandelbrot.prototype =
 
         this.minIm += amountIm;
         this.maxIm += amountIm;
+
+    },
+
+
+    anmiate : function()
+    {
+        var focusRe = -0.38;
+        var focusIm = 0.257;
+
+        var zoomAmount = 0.005;
+
+        this.minRe = this.minRe + zoomAmount * (focusRe - this.minRe);
+        this.maxRe = this.maxRe - zoomAmount * (this.maxRe - focusRe);
+
+
+        this.minIm = this.minIm + zoomAmount * (focusIm - this.minIm);
+        this.maxIm = this.maxIm - zoomAmount * (this.maxIm - focusIm);
+
+        //console.log(this.minRe + " " + this.maxRe);
 
     }
 };
