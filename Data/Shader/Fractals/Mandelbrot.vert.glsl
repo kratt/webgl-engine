@@ -8,20 +8,18 @@ varying vec4 vNormal;
 varying vec4 vColor; 
 varying vec4 vTexture; 
 
-uniform mat4 matProjection;
-uniform mat4 matModel; 
-uniform mat4 matView; 
+uniform float windowWidth;
+uniform float windowHeight;
 
-uniform sampler2D tex;
-uniform float x;
 
 void main() 
 { 
-	gl_Position = matProjection * matView * matModel * vec4(Position.xyz, 1.0);
-	gl_PointSize = 1.0; 
-	
 	vPosition = Position;
 	vNormal  = Normal; 
 	vColor   = Color; 
 	vTexture = Texture; 
+	
+	vec2 pos = (Position.xy / vec2(float(windowWidth), float(windowHeight))) * 2.0 - 1.0;		
+	gl_Position = vec4(pos, 0.0, 1);
+	      
 }

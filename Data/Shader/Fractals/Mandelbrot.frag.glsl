@@ -128,8 +128,8 @@ void main()
 		float co = float( numIter);// + 1.0 - log2(0.5*log2(modulus));
 		co = sqrt(co/125.0);
 
-		//gl_FragColor = vec4(0.5+0.5*cos(6.2831*co+R), 0.5+0.5*cos(6.2831*co + G), 0.5+0.5*cos(6.2831*co +B), 1.0 );
-		gl_FragColor = vec4(vec3(1.0-co), 1.0 );
+		gl_FragColor = vec4(0.5+0.5*cos(6.2831*co+R), 0.5+0.5*cos(6.2831*co + G), 0.5+0.5*cos(6.2831*co +B), 1.0 );
+		//gl_FragColor = vec4(vec3(1.0-co), 1.0 );
 	}
 
 }

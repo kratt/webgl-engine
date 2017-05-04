@@ -19,20 +19,11 @@ Pixel.Core.Renderer.Mandelbrot = function(openGLContext)
    this.mouseX = -1;
    this.mouseY = -1;
 
-    /*
    this.minRe = -1.5;
    this.maxRe =  0.7;
 
    this.minIm = -1.0;
-   this.maxIm =  1.0;*/
-
-    this.minRe = -1.0;
-    this.maxRe =  1.0;
-
-    this.minIm = -1.0;
-    this.maxIm =  1.0;
-
-    this.center = new vec2( (this.maxRe + this.minRe) / 2.0, (this.maxIm + this.minIm) / 2.0);
+   this.maxIm =  1.0;
 
     this.init();
 }
@@ -128,19 +119,7 @@ Pixel.Core.Renderer.Mandelbrot.prototype =
 
         this.gl.viewport(0, 0, this.width, this.height);
 
-        this.gl.disable(this.gl.BLEND);
-
-
-        var model      = new mat4().translateByVector(new vec3(0, 0, 0));
-        var view       = new mat4().translateByVector(new vec3 (0, 0, -1));
-        var projection = new mat4().orthographic(0, this.width, this.height, 0, -1, 1);
-
         this.shader.bind();
-
-        this.shader.setMatrix("matProjection", projection, false);
-        this.shader.setMatrix("matView", view, false);
-        this.shader.setMatrix("matModel", model, false);
-
 
         this.shader.setf("windowWidth",  this.width);
         this.shader.setf("windowHeight", this.height);
@@ -158,7 +137,6 @@ Pixel.Core.Renderer.Mandelbrot.prototype =
         this.shader.release();
     },
 
-
     resize : function(width, height)
     {
         this.width  = width;
@@ -173,97 +151,11 @@ Pixel.Core.Renderer.Mandelbrot.prototype =
        if(delta == 0)
             return;
 
-       /* mouseX /= window.innerWidth;
-        mouseY /= window.innerHeight;
-
-        mouseY = (1.0 - mouseY);   // invert y coord.
-
-        var targetCenterMovement = 0.05;
-
-        // determine new center doing linear interpolation of intervals
-        var distRe = (this.maxRe - this.minRe);
-        var distIm = (this.maxIm - this.minIm);
-
-
-        var relAmount = 0.1;
-        var amountRe = distRe * relAmount;
-        var amountIm = distIm * relAmount;
-
-        if (delta < 0)
-        {
-            var targetCenterX = this.minRe + mouseX*distRe;
-            var targetCenterY = this.minIm + mouseY*distIm;
-
-            var targetDir = new vec2(targetCenterX - this.center.x, targetCenterY - this.center.y);
-            var len = targetDir.length();
-            targetDir.normalize();
-
-            var newCenterX = this.center.x + targetCenterMovement * targetDir.x;
-            var newCenterY = this.center.y + targetCenterMovement * targetDir.y;
-
-            this.minRe = newCenterX - distRe/2.0;
-            this.maxRe = newCenterX + distRe/2.0;
-
-            this.minIm = newCenterY - distIm/2.0;
-            this.maxIm = newCenterY + distIm/2.0;
-
-            this.center.x = newCenterX;
-            this.center.y = newCenterY;
-
-            this.minRe += amountRe;
-            this.maxRe -= amountRe;
-
-            this.minIm += amountIm;
-            this.maxIm = this.minIm + (this.maxRe - this.minRe) * window.innerWidth / window.innerHeight;
-        }
-        else
-        {
-            this.minRe -= amountRe;
-            this.maxRe += amountRe;
-
-            this.minIm -= amountIm;
-            this.maxIm = this.minIm + (this.maxRe - this.minRe) * window.innerWidth / window.innerHeight;
-        }
-
-        */
-
-/*
-        var distRe = (this.maxRe - this.minRe);
-        var distIm = (this.maxIm - this.minIm);
-
-        var relAmount = 0.1;
-        var amountRe = distRe * relAmount;
-        var amountIm = distIm * relAmount;
-
-        if (delta < 0)
-        {
-            this.minRe += amountRe;
-            this.maxRe -= amountRe;
-
-            this.minIm += amountIm;
-            this.maxIm -= amountIm;// this.minIm + (this.maxRe - this.minRe) * window.innerWidth / window.innerHeight;
-        }
-        else
-        {
-            this.minRe -= amountRe;
-            this.maxRe += amountRe;
-
-            this.minIm -= amountIm;
-            this.maxIm = this.minIm + (this.maxRe - this.minRe) * window.innerWidth / window.innerHeight;
-        }
-
-
-        return;
-        */
         var focusRe = mouseX * (this.maxRe - this.minRe) + this.minRe;
         var focusIm = mouseY * (this.maxIm - this.minIm) + this.minIm;
-
-
-       // console.log(focusRe + " "+ focusIm);
-
-
         var zoomAmount = 0.05;
 
+        console.log(focusRe + " " + focusIm);
 
         if(delta < 0)
         {
@@ -299,25 +191,22 @@ Pixel.Core.Renderer.Mandelbrot.prototype =
 
         this.minIm += amountIm;
         this.maxIm += amountIm;
-
     },
 
 
     anmiate : function()
     {
-        var focusRe = -0.38;
-        var focusIm = 0.257;
+
+        return;
+        var focusRe = -0.6340429702092076;
+        var focusIm =  0.0000011354700868633244;
 
         var zoomAmount = 0.005;
 
         this.minRe = this.minRe + zoomAmount * (focusRe - this.minRe);
         this.maxRe = this.maxRe - zoomAmount * (this.maxRe - focusRe);
 
-
         this.minIm = this.minIm + zoomAmount * (focusIm - this.minIm);
         this.maxIm = this.maxIm - zoomAmount * (this.maxIm - focusIm);
-
-        //console.log(this.minRe + " " + this.maxRe);
-
     }
 };
