@@ -67,8 +67,8 @@ void main()
 	float y_min = minIm;
 	float y_max = maxIm;
 	
-	float cx = ( ( gl_FragCoord.x / windowWidth)  * (x_max - x_min) + x_min);// * scaleX;
-    float cy = ( ( gl_FragCoord.y / windowHeight) * (y_max - y_min) + y_min);//* scaleY;// * scaleY;
+	float cx = ( ( gl_FragCoord.x / windowWidth)  * (x_max - x_min) + x_min) * scaleX;
+    float cy = ( ( gl_FragCoord.y / windowHeight) * (y_max - y_min) + y_min) * scaleY;
 
 	float c_im = cy;
 	float c_re = cx;

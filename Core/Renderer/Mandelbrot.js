@@ -281,9 +281,6 @@ Pixel.Core.Renderer.Mandelbrot.prototype =
             this.minIm = this.minIm - zoomAmount * (focusIm - this.minIm);
             this.maxIm = this.maxIm + zoomAmount * (this.maxIm - focusIm);
         }
-
-
-
     },
 
     onMouseMove : function(dx, dy)
