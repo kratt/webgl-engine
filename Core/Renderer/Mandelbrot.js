@@ -24,8 +24,10 @@ Pixel.Core.Renderer.Mandelbrot = function(openGLContext)
 
    this.minIm = -1.0;
    this.maxIm =  1.0;
+   this.coloring = 0;
 
     this.init();
+
 }
 
 // Shortcut
@@ -132,6 +134,8 @@ Pixel.Core.Renderer.Mandelbrot.prototype =
         this.shader.setf("scaleX", this.aspect);
         this.shader.setf("scaleY", (this.maxRe - this.minRe) / (this.maxIm - this.minIm));
 
+        this.shader.seti("coloring", this.coloring);
+
             this.vboQuad.render();
 
         this.shader.release();
@@ -155,7 +159,7 @@ Pixel.Core.Renderer.Mandelbrot.prototype =
         var focusIm = mouseY * (this.maxIm - this.minIm) + this.minIm;
         var zoomAmount = 0.05;
 
-        console.log(focusRe + " " + focusIm);
+        //console.log(focusRe + " " + focusIm);
 
         if(delta < 0)
         {
@@ -196,8 +200,9 @@ Pixel.Core.Renderer.Mandelbrot.prototype =
 
     anmiate : function()
     {
-
         return;
+        // disable automatic zooming
+
         var focusRe = -0.6340429702092076;
         var focusIm =  0.0000011354700868633244;
 
