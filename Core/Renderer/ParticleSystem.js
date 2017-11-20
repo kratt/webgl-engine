@@ -18,7 +18,9 @@ Pixel.Core.Renderer.ParticleSystem = function(openGLContext, numParticles)
 
   console.log("Particle System Buffer width: " + this.buffer_width + " height: " + this.buffer_height);
 
-  this.texSprite = this.loadTexture("Data/Textures/particle.png");
+  this.cam = new Camera(new vec2(1, 1), 45.0);
+
+  this.texSprite = this.loadTexture("./webgl_engine/Data/Textures/particle.png");
 
   this.vboParticles = null;
   this.vboQuad      = null;
@@ -65,8 +67,8 @@ Pixel.Core.Renderer.ParticleSystem.prototype = {
 
     createShaders : function()
     {
-        this.shaderParticles       = new Pixel.Core.OpenGL.Shader(this.gl, 'particles');
-        this.shaderUpdateParticles = new Pixel.Core.OpenGL.Shader(this.gl, 'particles_euler_lorenz');
+        this.shaderParticles       = new Pixel.Core.OpenGL.Shader(this.gl, "webgl_engine/Data/Shader/ParticleSystem/Particles.vert.glsl", "webgl_engine/Data/Shader/ParticleSystem/Particles.frag.glsl");
+        this.shaderUpdateParticles = new Pixel.Core.OpenGL.Shader(this.gl, "webgl_engine/Data/Shader/ParticleSystem/EulerLorenz.vert.glsl", "webgl_engine/Data/Shader/ParticleSystem/EulerLorenz.frag.glsl");
     },
 
     createFBOs : function()
@@ -357,17 +359,23 @@ Pixel.Core.Renderer.ParticleSystem.prototype = {
             this.initRender = false;
     },
 
-    render : function(camera, renderParams)
+    render : function(renderParams)
     {
         this.updateParticles(renderParams);
 
-        var trans = camera.currentPerspective();
+        var trans = this.cam.currentPerspective();
         var model =  new mat4().translateByVector(this.center);
 
-        //console.log("cam viewport: " + camera.viewPort.x +", " + camera.viewPort.y);
+        this.gl.viewport(0, 0, this.cam.viewPort.x, this.cam.viewPort.y);
+        this.gl.clearColor(0.1, 0.1, 0.1, 1.0);
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
-        this.gl.viewport(0, 0, camera.viewPort.x, camera.viewPort.y);
+
         this.gl.enable(this.gl.BLEND);
+        this.gl.enable(this.gl.DEPTH_TEST);
+        this.gl.depthFunc(this.gl.LEQUAL);
+       // this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
+
 
         this.shaderParticles.bind();
 
@@ -419,6 +427,21 @@ Pixel.Core.Renderer.ParticleSystem.prototype = {
                 image);
              };
         return texture;
+    },
+
+    resize : function(width, height)
+    {
+        this.cam.update(width, height);
+    },
+
+    onMouseWheel : function(delta)
+    {
+        this.cam.onMouseWheel(delta);
+    },
+
+    onMouseMove : function(dx, dy)
+    {
+        cam.onMouseMove(dx, dy, 0);
     }
 };
 

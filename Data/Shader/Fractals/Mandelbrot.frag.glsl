@@ -19,6 +19,8 @@ uniform float scaleY;
 uniform int coloring;
 
 
+
+
 void main()
 {
 	float x_min = minRe;
@@ -27,34 +29,38 @@ void main()
 	float y_min = minIm;
 	float y_max = maxIm;
 	
+	// starting point (cx, cy) in complex plane
 	float cx = ( ( gl_FragCoord.x / windowWidth)  * (x_max - x_min) + x_min) * scaleX;
     float cy = ( ( gl_FragCoord.y / windowHeight) * (y_max - y_min) + y_min) * scaleY;
 
-	float c_im = cy;
-	float c_re = cx;
-		
-	float Z_re = c_re;
-	float Z_im = c_im;
+	float zx = cx;
+	float zy = cy;
+
 	bool isInside = true;
-	int numIter;
+	int numIter = 0;
 	
 	const int maxIter = 1000;
 	float esc_radius = 4.0;
 	
+	
 	for( int n=0; n < maxIter ; ++n)
 	{
-		float Z_re2 = Z_re * Z_re;
-		float Z_im2 = Z_im*Z_im;
-		if(Z_re2 + Z_im2 > esc_radius)
+        if((zx * zx + zy * zy) > 4.0) 
 		{
 			isInside = false;
 			break;
 		}
-		Z_im = 2.0*Z_re*Z_im + c_im;
-		Z_re = Z_re2 - Z_im2 + c_re;
+		
+		float x = (zx * zx - zy * zy) + cx;
+        float y = (zy * zx + zx * zy) + cy;
+		
+        zx = x;
+        zy = y;
+		
 		numIter=n;
 	}
 	
+
 	numIter++;
 	
 	if(isInside)
@@ -64,7 +70,7 @@ void main()
 	else
 	{		
 		// coloring taken and adpated from https://github.com/Syntopia/Fragmentarium
-		float modulus = sqrt (Z_re*Z_re + Z_im*Z_im);
+		float modulus = sqrt (zx*zx + zy*zy);
 		float mu = float(numIter) - (log(log(modulus)))/ log(2.0);
 				
 	    float R = 0.0;
