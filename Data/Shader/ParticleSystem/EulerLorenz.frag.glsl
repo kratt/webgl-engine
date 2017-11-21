@@ -67,7 +67,7 @@ void main()
 	
 	 }
 
-	gl_FragColor = vec4(curPos, curLifeTime);
+	gl_FragColor = vec4(newPos, curLifeTime);
 }
 
 

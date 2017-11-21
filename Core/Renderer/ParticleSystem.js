@@ -13,6 +13,7 @@ Pixel.Core.Renderer.ParticleSystem = function(openGLContext, numParticles)
 {
   this.gl = openGLContext;
   this.numParticles  = numParticles;
+  this.numParticlesTmp = numParticles;
   this.buffer_width  = Math.floor(Math.sqrt(numParticles));
   this.buffer_height = Math.floor(Math.sqrt(numParticles));
 
@@ -20,7 +21,7 @@ Pixel.Core.Renderer.ParticleSystem = function(openGLContext, numParticles)
 
   this.cam = new Camera(new vec2(1, 1), 45.0);
 
-  this.texSprite = this.loadTexture("webgl_engine/Data/Textures/Propeller-Pilz.png");
+  this.texSprite = this.loadTexture("webgl_engine/Data/Textures/particle.png");
 
   this.vboParticles = null;
   this.vboQuad      = null;
@@ -268,6 +269,31 @@ Pixel.Core.Renderer.ParticleSystem.prototype = {
         this.vboQuad.bindAttribs();
     },
 
+    updateBuffers : function()
+    {
+        this.buffer_width  = Math.floor(Math.sqrt(this.numParticles));
+        this.buffer_height = Math.floor(Math.sqrt(this.numParticles));
+
+        console.log("Particle System Buffer width: " + this.buffer_width + " height: " + this.buffer_height);
+
+        // delete previous buffers and textures
+        this.gl.deleteFramebuffer(this.fbo1.fboID);
+        this.gl.deleteFramebuffer(this.fbo2.fboID);
+        this.gl.deleteTexture(this.texPos);
+        this.gl.deleteTexture(this.texLifeTime);
+
+        this.gl.deleteBuffer(this.vboParticles.bufferId);
+        this.gl.deleteBuffer(this.vboQuad.bufferId);
+        // init buffers and textures with new size
+        this.createFBOs();
+        this.createVBOParticles();
+        this.createVBOScreenSizeQuad();
+        this.createTextures();
+
+        this.initRender = true;
+        this.flipFlop = 1;
+    },
+
     updateParticles : function(renderParams)
     {
         if(this.flipFlop == 1)
@@ -361,6 +387,13 @@ Pixel.Core.Renderer.ParticleSystem.prototype = {
 
     render : function(renderParams)
     {
+        // the number of particles has changed
+        if(this.numParticles != this.numParticlesTmp)
+        {
+            this.updateBuffers();
+            this.numParticlesTmp = this.numParticles;
+
+        }
         this.updateParticles(renderParams);
 
         var trans = this.cam.currentPerspective();
@@ -374,8 +407,8 @@ Pixel.Core.Renderer.ParticleSystem.prototype = {
         this.gl.enable(this.gl.BLEND);
         this.gl.enable(this.gl.DEPTH_TEST);
         this.gl.depthFunc(this.gl.LEQUAL);
-       // this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
-        this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+        this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
+      //  this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 
 
         this.shaderParticles.bind();
@@ -424,7 +457,7 @@ Pixel.Core.Renderer.ParticleSystem.prototype = {
         image.src = src;
         image.onload = function() {
             tmpGl.bindTexture(tmpGl.TEXTURE_2D, texture);
-            tmpGl.texImage2D(tmpGl.TEXTURE_2D, 0, tmpGl.RGB, tmpGl.RGB, tmpGl.UNSIGNED_BYTE,
+            tmpGl.texImage2D(tmpGl.TEXTURE_2D, 0, tmpGl.RGBA, tmpGl.RGBA, tmpGl.UNSIGNED_BYTE,
                 image);
              };
         return texture;

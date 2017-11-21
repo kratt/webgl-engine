@@ -15,11 +15,12 @@ void main()
 	float alpha = 1.0 - curLifeTime;
 	vec4 texColor = texture2D(texSprite, gl_PointCoord);
 	vec4 color = vec4(0.08, 0.01, 0.5, 0.9); // 0.3;
-	
-	texColor.a = 0.01;
+	color = vec4(1.0, 1.0, 1.0, 0.1); // 0.3;
+	texColor.a = 0.1;
 	
 	texColor.b = 0.5;
-	gl_FragColor = vec4(texColor.xyz, 1.0);
+	
+	gl_FragColor = vec4(color);
 	//gl_FragColor = vec4(0.08, 0.01, 0.5, 1.0);
 	
 	//gl_FragColor = vec4(1.0, 1.0, 1.0, 0.7);

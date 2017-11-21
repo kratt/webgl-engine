@@ -19,7 +19,7 @@ void main()
 	float curLifeTime = texture2D(texPos, Texture.xy).w;
 	
 	gl_Position = matProjection * matView * matModel * vec4(pos.xyz, 1.0);
-	gl_PointSize = 50.0; //1.0 * (1.0 - curLifeTime) * 24.0; 
+	gl_PointSize = 1.0 - curLifeTime; 
 	vNormal  = Normal; 
 	vColor   = Color; 
 	vTexture = Texture; 
