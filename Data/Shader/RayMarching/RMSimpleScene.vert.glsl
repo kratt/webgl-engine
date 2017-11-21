@@ -15,13 +15,13 @@ uniform mat4 matView;
 uniform sampler2D tex;
 uniform float x;
 
-uniform float windowWidth;
-uniform float windowHeight;
+uniform float window_width;
+uniform float window_height;
 
 void main() 
 { 
 	vec2 pos = Position.xy;
-	pos = (pos / vec2(windowWidth, windowHeight)) * 2.0 - 1.0;
+	pos = (pos / vec2(window_width, window_height)) * 2.0 - 1.0;
 			
 	gl_Position = vec4(pos, 0.0, 1);
 	  	

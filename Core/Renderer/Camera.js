@@ -21,11 +21,8 @@ Pixel.Core.Renderer.Camera = function(viewPort, fov)
     this.viewPort = viewPort;
     this.fov = fov;
     this.aspect = viewPort.x / viewPort.y;
-    this.zoom = -55.0;   // lorenz: zoom = -55
-    //this.rotate = new vec3(-24.4, -83.9, 0.0);
-
-    // lorenz
-    this.rotate = new vec3(-17.0, -83.0, 0.0);
+    this.zoom = 0.0;
+    this.rotate = new vec3(0.0, 0.0, 0.0);
 }
 
 // Shortcut
@@ -59,6 +56,16 @@ Pixel.Core.Renderer.Camera.prototype = {
       this.viewPort.x = width;
       this.viewPort.y = height;
       this.aspect = width / height;
+    },
+
+    setZoom : function(z)
+    {
+        this.zoom = z;
+    },
+
+    setRotation : function(rot)
+    {
+        this.rotate = rot;
     },
 
     onMouseMove : function(dx, dy, button)

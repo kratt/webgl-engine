@@ -20,6 +20,8 @@ Pixel.Core.Renderer.ParticleSystem = function(openGLContext, numParticles)
   console.log("Particle System Buffer width: " + this.buffer_width + " height: " + this.buffer_height);
 
   this.cam = new Camera(new vec2(1, 1), 45.0);
+  this.cam.setRotation(new vec3(-17.0, -83.0, 0.0));
+  this.cam.setZoom(-55);
 
   this.texSprite = this.loadTexture("webgl_engine/Data/Textures/particle.png");
 
