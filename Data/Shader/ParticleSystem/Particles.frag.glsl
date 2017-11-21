@@ -19,7 +19,7 @@ void main()
 	texColor.a = 0.01;
 	
 	texColor.b = 0.5;
-	gl_FragColor = vec4(texColor);
+	gl_FragColor = vec4(texColor.xyz, 1.0);
 	//gl_FragColor = vec4(0.08, 0.01, 0.5, 1.0);
 	
 	//gl_FragColor = vec4(1.0, 1.0, 1.0, 0.7);

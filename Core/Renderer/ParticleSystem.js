@@ -20,7 +20,7 @@ Pixel.Core.Renderer.ParticleSystem = function(openGLContext, numParticles)
 
   this.cam = new Camera(new vec2(1, 1), 45.0);
 
-  this.texSprite = this.loadTexture("./webgl_engine/Data/Textures/particle.png");
+  this.texSprite = this.loadTexture("webgl_engine/Data/Textures/Propeller-Pilz.png");
 
   this.vboParticles = null;
   this.vboQuad      = null;
@@ -375,6 +375,7 @@ Pixel.Core.Renderer.ParticleSystem.prototype = {
         this.gl.enable(this.gl.DEPTH_TEST);
         this.gl.depthFunc(this.gl.LEQUAL);
        // this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
+        this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 
 
         this.shaderParticles.bind();
@@ -423,7 +424,7 @@ Pixel.Core.Renderer.ParticleSystem.prototype = {
         image.src = src;
         image.onload = function() {
             tmpGl.bindTexture(tmpGl.TEXTURE_2D, texture);
-            tmpGl.texImage2D(tmpGl.TEXTURE_2D, 0, tmpGl.RGBA, tmpGl.RGBA, tmpGl.UNSIGNED_BYTE,
+            tmpGl.texImage2D(tmpGl.TEXTURE_2D, 0, tmpGl.RGB, tmpGl.RGB, tmpGl.UNSIGNED_BYTE,
                 image);
              };
         return texture;
@@ -441,7 +442,7 @@ Pixel.Core.Renderer.ParticleSystem.prototype = {
 
     onMouseMove : function(dx, dy)
     {
-        cam.onMouseMove(dx, dy, 0);
+        this.cam.onMouseMove(dx, dy, 0);
     }
 };
 
