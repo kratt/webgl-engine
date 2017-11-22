@@ -4,9 +4,9 @@ Pixel.Core.Geometry.SurfaceMesh = function(glContext)
     this.gl = glContext;
     this.vbos = new Array();
     this.textures = new Array();
-    this.shader = new Pixel.Core.OpenGL.Shader(this.gl, 'meshsurface_simple_phong');
 
-    this.textTexture = this.loadTexture("webgl_engine/Data/Textures/particle.png");
+    this.shader = new Pixel.Core.OpenGL.Shader(this.gl, "webgl_engine/Data/Shader/SurfaceMesh/SimplePhong.vert.glsl", "webgl_engine/Data/Shader/SurfaceMesh/SimplePhong.frag.glsl");
+
 }
 
 // Shortcut

@@ -161,6 +161,7 @@ Pixel.Core.Geometry.ObjLoader.prototype = {
 
                     // start new empty mesh array
                     this.meshes[curMatName].push(new Array());
+
                     startNewMesh = false;
                 }
 

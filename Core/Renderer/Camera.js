@@ -16,13 +16,15 @@ Transformation = function()
     this.viewProjection = new mat4().setToIdentity();
 }
 
-Pixel.Core.Renderer.Camera = function(viewPort, fov)
+Pixel.Core.Renderer.Camera = function(viewPort, fov, ncp, fcp)
 {
     this.viewPort = viewPort;
     this.fov = fov;
     this.aspect = viewPort.x / viewPort.y;
     this.zoom = 0.0;
     this.rotate = new vec3(0.0, 0.0, 0.0);
+    this.ncp = ncp;
+    this.fcp = fcp;
 }
 
 // Shortcut
@@ -33,7 +35,7 @@ Pixel.Core.Renderer.Camera.prototype = {
 
     currentPerspective : function()
     {
-        var projection =  new mat4().perspective(this.fov, this.aspect, 1.0, 1000);
+        var projection =  new mat4().perspective(this.fov, this.aspect, this.ncp, this.fcp);
         var translate = new mat4().translateByVector(new vec3(0.0, 0.0, this.zoom));
         var rot_x = new mat4().rotateX(this.rotate.x);
         var rot_y = new mat4().rotateY(this.rotate.y);

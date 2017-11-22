@@ -28,7 +28,7 @@ Pixel.Core.Renderer.RayMarching = function(openGLContext)
     this.updateTime = 0.1;
     this.curAnimationTime = 0.0;
 
-    this.cam = new Camera(new vec2(1, 1), 45.0);
+    this.cam = new Camera(new vec2(1, 1), 45.0, 1.0, 1000);
     this.cam.setZoom(-5);
     this.cam.setRotation(new vec3(-20.0, 40.0, 0.0));
 
