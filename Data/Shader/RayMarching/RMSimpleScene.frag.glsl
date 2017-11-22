@@ -116,11 +116,10 @@ float distanceField(in vec3 p)
 	p = opTwist(p);
 	
 	float sphere = sdSphere(p, 0.8);
-	float sponge = mengersponge_de(p); //mengersponge_de(p);
+	float sponge = mengersponge_de(p); 
 	
 	float diff = max(sphere, sponge);
 	
-	// interpolate between distances
 	return sponge; 
 }
 
