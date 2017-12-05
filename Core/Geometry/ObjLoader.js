@@ -33,7 +33,7 @@ Pixel.Core.Geometry.ObjLoader = function(fileName)
     if(this.materialCache.length == 0)
         this.materialCache.push(new ObjMaterial());
 
-    /*
+
     for(var i=0; i<this.materialCache.length; ++i)
     {
         var mat = this.materialCache[i];
@@ -47,7 +47,7 @@ Pixel.Core.Geometry.ObjLoader = function(fileName)
         console.log("map_Ks: " + mat.map_Ks);
         console.log("\n");
     }
-*/
+
     console.log("Obj loaded: " + fileName);
 }
 
@@ -307,7 +307,7 @@ Pixel.Core.Geometry.ObjLoader.prototype = {
     loadFile : function (fileUrl) {
         var http = new XMLHttpRequest();
         var fileContent;
-        http.open("GET", fileUrl, false);
+        http.open("GET", fileUrl+'?'+(new Date()).getTime(), false);
         http.setRequestHeader(
             "Content-Type",
             "application/x-www-form-urlencoded");

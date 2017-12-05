@@ -9,7 +9,7 @@ uniform sampler2D texKd;
 
 void main() 
 {    
-	vec3 texColor = texture2D(texKd, vec2(1.0 - vTexture.x, 1.0 - vTexture.y)).xyz;
+	vec3 texColor = texture2D(texKd, vec2(1.0-vTexture.y, vTexture.x)).xyz;
 	
 	gl_FragColor = vec4(texColor.xyz, 1);
 }
