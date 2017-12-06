@@ -1,4 +1,18 @@
 
+SurfaceMaterial = function()
+{
+    this.name = "default";
+    this.Ns = 0.0;
+    this.Ka = new vec3();
+    this.Kd = new vec3();
+    this.Ks = new vec3();
+    // texture objects
+    this.texKa = null;
+    this.texKd = null;
+    this.texKs = null;
+}
+
+
 Pixel.Core.Geometry.SurfaceMesh = function(glContext)
 {
     this.gl = glContext;
@@ -6,6 +20,7 @@ Pixel.Core.Geometry.SurfaceMesh = function(glContext)
     this.textures = new Array();
 
     this.shader = new Pixel.Core.OpenGL.Shader(this.gl, "webgl_engine/Data/Shader/SurfaceMesh/SimplePhong.vert.glsl", "webgl_engine/Data/Shader/SurfaceMesh/SimplePhong.frag.glsl");
+    this.surfaceMaterials = {};
 
 }
 
@@ -22,14 +37,25 @@ Pixel.Core.Geometry.SurfaceMesh.prototype = {
     loadObj : function(fileName)
     {
         var obj = new ObjLoader(fileName);
-        console.log("num meshes: " + obj.meshes.length);
 
-        // init material textures (kd only for now)
-        for(var material in obj.materialCache) {
-            if(obj.materialCache[material].map_Kd != null)
+        // init material textures
+        for(var matName in obj.materialCache)
+        {
+            this.surfaceMaterials[matName] = new SurfaceMaterial();
+            this.surfaceMaterials[matName].Ns = obj.materialCache[matName].Ns;
+
+            // kd map
+            if(obj.materialCache[matName].map_Kd != null)
             {
-                var fileName = obj.path + obj.materialCache[material].map_Kd;
-               this.textures[material] = this.loadTexture(fileName);
+               var fileName = obj.path + obj.materialCache[matName].map_Kd;
+               this.surfaceMaterials[matName].texKd = this.loadTexture(fileName);
+            }
+
+            // ks map
+            if(obj.materialCache[matName].map_Ks != null)
+            {
+                var fileName = obj.path + obj.materialCache[matName].map_Ks;
+                this.surfaceMaterials[matName].texKs = this.loadTexture(fileName);
             }
         }
 
@@ -180,25 +206,59 @@ Pixel.Core.Geometry.SurfaceMesh.prototype = {
 
         for(var material in this.vbos)
         {
-            // do we have a texture
-            if(this.textures[material] != null)
+            // do we have a kd texture?
+            if(this.surfaceMaterials[material].texKd != null)
             {
                 this.gl.activeTexture(this.gl.TEXTURE1);
-                this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[material]);
-              //  this.gl.bindTexture(this.gl.TEXTURE_2D, this.textTexture);
+                this.gl.bindTexture(this.gl.TEXTURE_2D, this.surfaceMaterials[material].texKd);
                 this.shader.seti("texKd", 1);
-              //  console.log(this.textures[material]);
             }
+
+            // do we have a ks texture?
+            if(this.surfaceMaterials[material].texKs != null)
+            {
+                this.gl.activeTexture(this.gl.TEXTURE2);
+                this.gl.bindTexture(this.gl.TEXTURE_2D, this.surfaceMaterials[material].texKs);
+                this.shader.seti("texKs", 2);
+            }
+
+            this.shader.seti("hasTexKs", this.surfaceMaterials[material].texKs != null);
+
+            this.shader.setf("Ns", this.surfaceMaterials[material].Ns);
 
             for(var i=0; i<this.vbos[material].length; ++i)
                 this.vbos[material][i].render();
 
         }
 
-        for(var i=0; i<this.vbos.length; ++i)
-
-
         this.shader.release();
+    },
+
+
+    cleanup : function()
+    {
+        // delete all vbos
+        for(var material in this.vbos) {
+            for (var i = 0; i < this.vbos[material].length; ++i){
+                this.gl.deleteBuffer(this.vbos[material][i].bufferId);
+            }
+        }
+
+        // delete all textures
+        for(var material in this.surfaceMaterials)
+        {
+            if(this.surfaceMaterials[material].texKd != null) {
+                this.gl.deleteTexture(this.surfaceMaterials[material].texKd );
+            }
+
+            if(this.surfaceMaterials[material].texKs != null) {
+                this.gl.deleteTexture(this.surfaceMaterials[material].texKs);
+            }
+
+            if(this.surfaceMaterials[material].texKa != null) {
+                this.gl.deleteTexture(this.surfaceMaterials[material].texKa);
+            }
+        }
     }
 
 }

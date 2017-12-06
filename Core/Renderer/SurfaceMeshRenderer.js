@@ -11,16 +11,26 @@
  * @param file Obj file name
  * @constructor
  */
-Pixel.Core.Renderer.SurfaceMeshRenderer = function(openGLContext, file)
+Pixel.Core.Renderer.SurfaceMeshRenderer = function(openGLContext)
 {
-   this.gl = openGLContext;
-   this.surface = new SurfaceMesh(openGLContext);
-   this.surface.loadObj(file)
+    this.filePaths = ['webgl_engine/Data/Objs/gnome/Dwarf_2_Low.obj',
+                      'webgl_engine/Data/Objs/head/head.obj'];
 
-    this.cam = new Camera(new vec2(1, 1), 45.0, 0.1, 15.0);
-    this.cam.setRotation(new vec3(-17.0, -83.0, 0.0));
-    this.cam.setZoom(-1);
+    this.gl = openGLContext;
 
+    this.surfaces = [];
+    for(var idx in this.filePaths)
+    {
+        var surface = new SurfaceMesh(openGLContext);
+        surface.loadObj(this.filePaths[idx]);
+        this.surfaces.push(surface);
+    }
+
+    this.cam = new Camera(new vec2(1, 1), 45.0, 0.01, 15.0);
+    this.cam.setRotation(new vec3(-10.0, 0.0, 0.0));
+    this.cam.setZoom(-0.35)
+
+    this.activeModel = 0;
 }
 
 // Shortcut
@@ -39,7 +49,7 @@ SurfaceMeshRenderer = Pixel.Core.Renderer.SurfaceMeshRenderer;
         this.gl.enable(this.gl.DEPTH_TEST);
         this.gl.depthFunc(this.gl.LEQUAL);
 
-        this.surface.render(this.cam);
+        this.surfaces[this.activeModel].render(this.cam);
     },
 
      resize : function(width, height)
@@ -56,6 +66,5 @@ SurfaceMeshRenderer = Pixel.Core.Renderer.SurfaceMeshRenderer;
      {
          this.cam.onMouseMove(dx, dy, 0);
      }
-
 } ;
 

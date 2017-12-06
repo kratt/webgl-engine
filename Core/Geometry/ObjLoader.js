@@ -1,9 +1,7 @@
-
-
 ObjMaterial = function()
 {
     this.name = "default";
-    this.Ns = 0.0;
+    this.Ns = 64.0;
     this.Ka = new vec3();
     this.Kd = new vec3();
     this.Ks = new vec3();
@@ -33,21 +31,6 @@ Pixel.Core.Geometry.ObjLoader = function(fileName)
     if(this.materialCache.length == 0)
         this.materialCache.push(new ObjMaterial());
 
-
-    for(var i=0; i<this.materialCache.length; ++i)
-    {
-        var mat = this.materialCache[i];
-        console.log("Material: " + mat.name);
-        console.log("Ns: " + mat.Ns);
-        console.log("Ka: " + mat.Ka);
-        console.log("Kd: " + mat.Kd);
-        console.log("Ks: " + mat.Ks);
-        console.log("map_Ka: " + mat.map_Ka);
-        console.log("map_Kd: " + mat.map_Kd);
-        console.log("map_Ks: " + mat.map_Ks);
-        console.log("\n");
-    }
-
     console.log("Obj loaded: " + fileName);
 }
 
@@ -61,14 +44,15 @@ Pixel.Core.Geometry.ObjLoader.prototype = {
     {
         var matData = this.loadFile(fileName);
         var lines = matData.split('\n');
+        var matName = "default";
 
         for(var i=0; i<lines.length; ++i)
         {
             var curLine = lines[i].trim();
 
+            console.log(curLine);
             // skip white space and comments
             if(curLine.length == 0 || /#/.test(curLine)){
-                //  console.log(curLine);
                 continue;
             }
             var entries = curLine.split(/\s+/);
@@ -76,36 +60,37 @@ Pixel.Core.Geometry.ObjLoader.prototype = {
             // start new material
             if(/^newmtl\s/.test(curLine))
             {
-                this.materialCache.push(new ObjMaterial());
-                this.materialCache[this.materialCache.length - 1].name = entries[1];
+                matName = entries[1];
+                this.materialCache[matName] = new ObjMaterial();
+                this.materialCache[matName].name = matName;
             }
             else if(/^Ns\s/.test(curLine))
             {
-                this.materialCache[this.materialCache.length - 1].Ns = entries[1];
+                this.materialCache[matName].Ns = entries[1];
             }
             else if(/Ka\s/.test(curLine))
             {
-                this.materialCache[this.materialCache.length - 1].Ka = new vec3(entries[1], entries[2], entries[3]);
+                this.materialCache[matName].Ka = new vec3(entries[1], entries[2], entries[3]);
             }
             else if(/^Kd\s/.test(curLine))
             {
-                this.materialCache[this.materialCache.length - 1].Kd = new vec3(entries[1], entries[2], entries[3]);
+                this.materialCache[matName].Kd = new vec3(entries[1], entries[2], entries[3]);
             }
             else if(/^Ks\s/.test(curLine))
             {
-                this.materialCache[this.materialCache.length - 1].Ks = new vec3(entries[1], entries[2], entries[3]);
+                this.materialCache[matName].Ks = new vec3(entries[1], entries[2], entries[3]);
             }
             else if(/^map_Ka\s/.test(curLine))
             {
-                this.materialCache[this.materialCache.length - 1].map_Ka = entries[1];
+                this.materialCache[matName].map_Ka = entries[1];
             }
             else if(/^map_Kd\s/.test(curLine))
             {
-                this.materialCache[this.materialCache.length - 1].map_Kd = entries[1];
+                this.materialCache[matName].map_Kd = entries[1];
             }
             else if(/^map_Ks\s/.test(curLine))
             {
-                this.materialCache[this.materialCache.length - 1].map_Ks = entries[1];
+                this.materialCache[matName].map_Ks = entries[1];
             }
         }
     },
@@ -150,8 +135,12 @@ Pixel.Core.Geometry.ObjLoader.prototype = {
             }
             else if(/^vn\s/.test(curLine))
                 normals.push.apply(normals, entries);
-            else if(/^vt\s/.test(curLine))
-                texCoords.push.apply(texCoords, entries);
+            else if(/^vt\s/.test(curLine)) {
+                // only take u and v of tex coordinates
+               // texCoords.push.apply(texCoords, entries);
+                texCoords.push(entries[0]);
+                texCoords.push(entries[1]);
+            }
             else if(/^f\s/.test(curLine)){
 
                 // start new face array

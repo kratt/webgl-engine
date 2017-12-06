@@ -43,7 +43,7 @@ Pixel.Core.Renderer.Camera.prototype = {
        // var view =  rot_y.multiply(rot_x.multiply(translate));
         //var view = translate.multiply(rot_y).multiply(rot_x);
 
-        var view = (translate.multiply(rot_x)).multiply(rot_y);
+        var view = (translate.multiply(rot_x)).multiply(rot_y);2015
 
         var trans = new Transformation();
         trans.view = view;

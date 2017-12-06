@@ -154,6 +154,11 @@ Pixel.Core.OpenGL.Shader.prototype = {
         this.gl.uniform2f(this.gl.getUniformLocation(this.id(), label), arg1, arg2);
     },
 
+    set3f : function(label, v)
+    {
+        this.gl.uniform3f(this.gl.getUniformLocation(this.id(), label), v.x, v.y, v.z);
+    },
+
     setMatrix : function(label, mat, transpose)
     {
         var data = mat.toArray();
@@ -167,6 +172,5 @@ Pixel.Core.OpenGL.Shader.prototype = {
         http.open("GET", fileUrl+'?'+(new Date()).getTime(), false) // force reload
         http.send(null);
         return http.responseText;
-
     }
 }
