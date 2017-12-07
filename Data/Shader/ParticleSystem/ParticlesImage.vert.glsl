@@ -15,12 +15,11 @@ uniform sampler2D texPos;
 
 void main() 
 { 
-	vec3 pos = texture2D(texPos, Texture.xy).xyz;
-	float curLifeTime = texture2D(texPos, Texture.xy).w;
-	
-	gl_Position = matProjection * matView * matModel * vec4(pos.xyz, 1.0);
-	gl_PointSize = 1.0 - curLifeTime; 
+	gl_PointSize = 10.0; 
 	vNormal  = Normal; 
 	vColor   = Color; 
 	vTexture = Texture; 
+	
+	vec3 pos = texture2D(texPos, Texture.xy).xyz;
+	gl_Position = matProjection * matView * matModel * vec4(pos.xyz, 1.0);
 }
