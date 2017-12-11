@@ -12,6 +12,7 @@ uniform mat4 matModel;
 uniform mat4 matView; 
 
 uniform sampler2D texPos;
+uniform sampler2D texColor;
 
 void main() 
 { 
@@ -21,5 +22,8 @@ void main()
 	vTexture = Texture; 
 	
 	vec3 pos = texture2D(texPos, Texture.xy).xyz;
+	vec3 color = texture2D(texColor, vTexture.xy).xyz;
+	
+	
 	gl_Position = matProjection * matView * matModel * vec4(pos.xyz, 1.0);
 }

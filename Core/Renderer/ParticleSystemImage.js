@@ -47,7 +47,7 @@ Pixel.Core.Renderer.ParticleSystemImage = function(openGLContext, img)
 
     this.resetTime = 0.0;
 
-    this.center = new vec3(0.0, 0.0, -1.0); //-25.0);
+    this.center = new vec3(0.0, 0.0, 0.0); //-25.0);
 
     this.init();
 }
@@ -109,18 +109,42 @@ Pixel.Core.Renderer.ParticleSystemImage.prototype = {
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
 
         this.gl.bindTexture(this.gl.TEXTURE_2D, null);
+/*
+        var numRed = 0;
+        var colData = new Float32Array(this.buffer_width * this.buffer_height * 4);
+        for(var y=0; y<this.buffer_height; ++y)
+        {
+            for(var x=0; x<this.buffer_width; ++x)
+            {
+                var i = 4 * (y*this.buffer_width + x);
 
-
-        console.log(this.img);
+                if(x < 2) {
+                    colData[i] = 1.0;
+                    colData[i + 1] = 0.0;
+                    colData[i + 2] = 0.0;
+                    colData[i + 3] = 1.0;
+                    numRed++;
+                }
+                else
+                {
+                    colData[i] = 0.0;
+                    colData[i + 1] = 1.0;
+                    colData[i + 2] = 0.0;
+                    colData[i + 3] = 1.0;
+                }
+            }
+        }
+*/
+      //  console.log(this.img);
         this.texColor = this.gl.createTexture();
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.texColor);
         this.gl.texImage2D( this.gl.TEXTURE_2D, 0,  this.gl.RGBA,  this.gl.RGBA,  this.gl.UNSIGNED_BYTE, this.img);
-       // this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.buffer_width, this.buffer_height, 0, this.gl.RGBA, this.gl.FLOAT, colData);
+        //this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.buffer_width, this.buffer_height, 0, this.gl.RGBA, this.gl.FLOAT, colData);
 
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
-        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+       // this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+      //  this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
 
         this.gl.bindTexture(this.gl.TEXTURE_2D, null);
     },
@@ -150,6 +174,7 @@ Pixel.Core.Renderer.ParticleSystemImage.prototype = {
             var tx = idxX;
             var ty = idxY;
 
+           //console.log(tx + " " + ty);
             attrData.push(0.0); // vx
             attrData.push(0.0); // vy
             attrData.push(0.0); // vz
@@ -337,13 +362,13 @@ Pixel.Core.Renderer.ParticleSystemImage.prototype = {
 
         this.shaderParticles.bind();
 
-        if(this.flipFlop == 1){
+        if(this.flipFlop == 2){
             this.gl.activeTexture(this.gl.TEXTURE1);
             this.gl.bindTexture(this.gl.TEXTURE_2D, this.fbo1.texAtt0);
         }
         else{
             this.gl.activeTexture(this.gl.TEXTURE1);
-            this.gl.bindTexture(this.gl.TEXTURE_2D, this.fbo1.texAtt0);
+            this.gl.bindTexture(this.gl.TEXTURE_2D, this.fbo2.texAtt0);
         }
 
         this.shaderParticles.seti("texPos", 1);
@@ -351,10 +376,6 @@ Pixel.Core.Renderer.ParticleSystemImage.prototype = {
         this.gl.activeTexture(this.gl.TEXTURE2);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.texColor);
         this.shaderParticles.seti("texColor", 2);
-
-        this.gl.activeTexture(this.gl.TEXTURE3);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.texSprite);
-        this.shaderParticles.seti("texSprite", 3);
 
 
         this.shaderParticles.setMatrix("matProjection", trans.projection, false);
