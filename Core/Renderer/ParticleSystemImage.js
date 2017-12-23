@@ -47,6 +47,10 @@ Pixel.Core.Renderer.ParticleSystemImage = function(openGLContext, img)
 
     this.resetTime = 0.0;
 
+    this.updateTime = 0.1;
+    this.curAnimationTime = 0.0;
+    this.animationSpeed = 1.0;
+
     this.center = new vec3(0.0, 0.0, 0.0); //-25.0);
 
     this.init();
@@ -274,7 +278,7 @@ Pixel.Core.Renderer.ParticleSystemImage.prototype = {
         this.vboQuad.bindAttribs();
     },
 
-    updateParticles : function(renderParams)
+    updateParticles : function()
     {
         if(this.flipFlop == 1)
             this.fbo1.bind();
@@ -323,6 +327,8 @@ Pixel.Core.Renderer.ParticleSystemImage.prototype = {
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.texColor);
         this.shaderUpdateParticles.seti("texColor", 5);
 
+        this.shaderUpdateParticles.setf("curAnimationTime", this.curAnimationTime);
+
             this.vboQuad.render();
 
         this.shaderUpdateParticles.release();
@@ -342,9 +348,14 @@ Pixel.Core.Renderer.ParticleSystemImage.prototype = {
             this.initRender = false;
     },
 
-    render : function(renderParams)
+    render : function(fps)
     {
-        this.updateParticles(renderParams);
+        if(fps > 0) {
+            var delta = this.updateTime / fps * this.animationSpeed
+            this.curAnimationTime += delta;
+        }
+
+        this.updateParticles();
 
         var trans = this.cam.currentPerspective();
         var model =  new mat4().translateByVector(this.center);
