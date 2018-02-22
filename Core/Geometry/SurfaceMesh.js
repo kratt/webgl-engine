@@ -222,6 +222,7 @@ Pixel.Core.Geometry.SurfaceMesh.prototype = {
                 this.shader.seti("texKs", 2);
             }
 
+            this.shader.seti("hasTexKd", this.surfaceMaterials[material].texKd != null);
             this.shader.seti("hasTexKs", this.surfaceMaterials[material].texKs != null);
 
             this.shader.setf("Ns", this.surfaceMaterials[material].Ns);

@@ -14,7 +14,8 @@
 Pixel.Core.Renderer.SurfaceMeshRenderer = function(openGLContext)
 {
     this.filePaths = ['webgl_engine/Data/Objs/gnome/Dwarf_2_Low.obj',
-                      'webgl_engine/Data/Objs/head/head.obj'];
+                      'webgl_engine/Data/Objs/head/head.obj',
+                      'webgl_engine/Data/Objs/lucy/Lucy_120mm_simplified.obj'];
 
     this.gl = openGLContext;
 
