@@ -1,0 +1,4 @@
+newmtl defaultMat
+Ks .0001 .0001 .0001
+Ns 128
+
