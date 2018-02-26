@@ -19,6 +19,7 @@ Pixel.Core.Renderer.SurfaceMeshRenderer = function(openGLContext)
 
     this.gl = openGLContext;
 
+
     this.surfaces = [];
     for(var idx in this.filePaths)
     {
@@ -26,6 +27,7 @@ Pixel.Core.Renderer.SurfaceMeshRenderer = function(openGLContext)
         surface.loadObj(this.filePaths[idx]);
         this.surfaces.push(surface);
     }
+
 
     this.cam = new Camera(new vec2(1, 1), 45.0, 0.01, 15.0);
     this.cam.setRotation(new vec3(-10.0, 0.0, 0.0));
