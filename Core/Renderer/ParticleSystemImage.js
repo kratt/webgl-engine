@@ -26,24 +26,32 @@ Pixel.Core.Renderer.ParticleSystemImage = function(openGLContext, img)
 
     this.texSprite = this.loadTexture("webgl_engine/Data/Textures/particle - Copy.png");
 
-    this.cam = new Camera(new vec2(1, 1), 45.0, 1.0, 1000.0);
+    this.cam = new Camera(new vec2(1, 1), 45.0, 1.0, 5000.0);
     this.cam.setRotation(new vec3(0, 0.0, 0.0));
     this.cam.setZoom(-500);
 
     this.vboParticles = null;
     this.vboQuad      = null;
 
-    this.fbo1 = null;
-    this.fbo2 = null;
+    // flip flop rendering fbos (position and velocities)
+    this.fboPos1 = null;
+    this.fboPos2 = null;
 
+    this.fboVelo1 = null;
+    this.fboVelo2 = null;
+
+    // initial position and velocity maps
     this.texPos = null;
+    this.texVelocity = null;
     this.texColor = null;
 
     this.shaderParticles      = null;
-    this.shaderUpdateParticles = null;
+    this.shaderUpdatePositions = null;
+    this.shaderUpdateVelocities = null;
 
     this.initRender = true;
-    this.flipFlop = 1;
+    this.flipFlopPos  = 1;
+    this.flipFlopVelo = 1;
 
     this.resetTime = 0.0;
 
@@ -54,6 +62,10 @@ Pixel.Core.Renderer.ParticleSystemImage = function(openGLContext, img)
     this.center = new vec3(0.0, 0.0, 0.0); //-25.0);
 
     this.init();
+
+    this.initPosTransition = 0.0;
+    this.enableIntPosTransition = false;
+    this.posTransitionStep = 0.001;
 }
 
 // Shortcut
@@ -73,22 +85,27 @@ Pixel.Core.Renderer.ParticleSystemImage.prototype = {
 
     createShaders : function()
     {
-        this.shaderParticles       = new Pixel.Core.OpenGL.Shader(this.gl, "webgl_engine/Data/Shader/ParticleSystem/ParticlesImage.vert.glsl", "webgl_engine/Data/Shader/ParticleSystem/ParticlesImage.frag.glsl");
-        this.shaderUpdateParticles = new Pixel.Core.OpenGL.Shader(this.gl, "webgl_engine/Data/Shader/ParticleSystem/ParticlesImageUpdate.vert.glsl", "webgl_engine/Data/Shader/ParticleSystem/ParticlesImageUpdate.frag.glsl");
+        this.shaderParticles        = new Pixel.Core.OpenGL.Shader(this.gl, "webgl_engine/Data/Shader/ParticleSystem/ParticlesImage.vert.glsl", "webgl_engine/Data/Shader/ParticleSystem/ParticlesImage.frag.glsl");
+        this.shaderUpdatePositions  = new Pixel.Core.OpenGL.Shader(this.gl, "webgl_engine/Data/Shader/ParticleSystem/BoidsUpdatePosition.vert.glsl", "webgl_engine/Data/Shader/ParticleSystem/BoidsUpdatePosition.frag.glsl");
+        this.shaderUpdateVelocities = new Pixel.Core.OpenGL.Shader(this.gl, "webgl_engine/Data/Shader/ParticleSystem/BoidsUpdateVelocity.vert.glsl", "webgl_engine/Data/Shader/ParticleSystem/BoidsUpdateVelocity.frag.glsl");
     },
 
     createFBOs : function()
     {
-        this.fbo1 = new Pixel.FrameBufferObject(this.gl, this.buffer_width, this.buffer_height, 1, 0, this.gl.FALSE, this.gl.NEAREST);
-        this.fbo2 = new Pixel.FrameBufferObject(this.gl, this.buffer_width, this.buffer_height, 1, 0, this.gl.FALSE, this.gl.NEAREST);
+        this.fboPos1 = new Pixel.FrameBufferObject(this.gl, this.buffer_width, this.buffer_height, 1, 0, this.gl.FALSE, this.gl.NEAREST);
+        this.fboPos2 = new Pixel.FrameBufferObject(this.gl, this.buffer_width, this.buffer_height, 1, 0, this.gl.FALSE, this.gl.NEAREST);
+
+        this.fboVelo1 = new Pixel.FrameBufferObject(this.gl, this.buffer_width, this.buffer_height, 1, 0, this.gl.FALSE, this.gl.NEAREST);
+        this.fboVelo2 = new Pixel.FrameBufferObject(this.gl, this.buffer_width, this.buffer_height, 1, 0, this.gl.FALSE, this.gl.NEAREST);
     },
 
     createTextures : function()
     {
         // init positions of particles
         var posData = new Float32Array(this.buffer_width * this.buffer_height * 4);
-
         var scale = 2.25;
+        var min = -50.0;
+        var max = 50.0;
         for(var y=0; y<this.buffer_height; ++y)
         {
             for(var x=0; x<this.buffer_width; ++x)
@@ -99,6 +116,10 @@ Pixel.Core.Renderer.ParticleSystemImage.prototype = {
                 posData[i+1] = scale*(y - 0.5*this.buffer_height);
                 posData[i+2] = 0.0;
                 posData[i+3] = 1.0;
+              /*  posData[i]   = (Math.random() * (max - min)) + min; // pos.x
+                posData[i+1] = (Math.random() * (max - min)) + min; // pos.y
+                posData[i+2] = (Math.random() * (max - min)) + min; // pos.z
+                posData[i+3] =  0.0; // lifetime of particle*/
             }
         }
 
@@ -106,50 +127,44 @@ Pixel.Core.Renderer.ParticleSystemImage.prototype = {
         this.texPos = this.gl.createTexture();
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.texPos);
         this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.buffer_width, this.buffer_height, 0, this.gl.RGBA, this.gl.FLOAT, posData);
-
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
-
         this.gl.bindTexture(this.gl.TEXTURE_2D, null);
-/*
-        var numRed = 0;
-        var colData = new Float32Array(this.buffer_width * this.buffer_height * 4);
+
+
+        // init velocity map
+        var veloData = new Float32Array(this.buffer_width * this.buffer_height * 4);
         for(var y=0; y<this.buffer_height; ++y)
         {
             for(var x=0; x<this.buffer_width; ++x)
             {
                 var i = 4 * (y*this.buffer_width + x);
-
-                if(x < 2) {
-                    colData[i] = 1.0;
-                    colData[i + 1] = 0.0;
-                    colData[i + 2] = 0.0;
-                    colData[i + 3] = 1.0;
-                    numRed++;
-                }
-                else
-                {
-                    colData[i] = 0.0;
-                    colData[i + 1] = 1.0;
-                    colData[i + 2] = 0.0;
-                    colData[i + 3] = 1.0;
-                }
+                veloData[i]   = 0.0;
+                veloData[i+1] = 0.0;
+                veloData[i+2] = 0.0;
+                veloData[i+3] = 1.0;
             }
         }
-*/
-      //  console.log(this.img);
+
+        // build velocity texture
+        this.texVelocity = this.gl.createTexture();
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.texVelocity);
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.buffer_width, this.buffer_height, 0, this.gl.RGBA, this.gl.FLOAT, veloData);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, null);
+
+
+        // load texture image
         this.texColor = this.gl.createTexture();
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.texColor);
         this.gl.texImage2D( this.gl.TEXTURE_2D, 0,  this.gl.RGBA,  this.gl.RGBA,  this.gl.UNSIGNED_BYTE, this.img);
-        //this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.buffer_width, this.buffer_height, 0, this.gl.RGBA, this.gl.FLOAT, colData);
-
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
-       // this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
-      //  this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
-
         this.gl.bindTexture(this.gl.TEXTURE_2D, null);
     },
 
@@ -278,17 +293,110 @@ Pixel.Core.Renderer.ParticleSystemImage.prototype = {
         this.vboQuad.bindAttribs();
     },
 
-    updateParticles : function()
+    updateVelocities : function()
     {
-        if(this.flipFlop == 1)
-            this.fbo1.bind();
+        if(this.flipFlopVelo == 1)
+            this.fboVelo1.bind();
 
-        if(this.flipFlop == 2)
-            this.fbo2.bind();
+        if(this.flipFlopVelo == 2)
+            this.fboVelo2.bind();
 
-        this.gl.clearColor(0.0, 0.0, 0.0, 1.0);
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.gl.viewport(0, 0, this.buffer_width, this.buffer_height);
+        this.gl.clearColor(1.0, 0.0, 0.0, 1.0);
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+
+        this.gl.disable(this.gl.BLEND);
+
+        var model      = new mat4().translateByVector(new vec3(0, 0, 0));
+        var view       = new mat4().translateByVector(new vec3 (0, 0, -1));
+        var projection = new mat4().orthographic(0, this.buffer_width, this.buffer_height, 0, -1, 1);
+
+        this.shaderUpdateVelocities.bind();
+
+        this.shaderUpdateVelocities.setMatrix("matProjection", projection, false);
+        this.shaderUpdateVelocities.setMatrix("matView", view, false);
+        this.shaderUpdateVelocities.setMatrix("matModel", model, false);
+
+        // bind velocity map
+        this.gl.activeTexture(this.gl.TEXTURE0);
+        if(this.flipFlopVelo == 1)
+        {
+            if(this.initRender)
+            {
+                this.gl.bindTexture(this.gl.TEXTURE_2D, this.texVelocity); // initial velocity
+            }
+            else
+            {
+                this.gl.bindTexture(this.gl.TEXTURE_2D, this.fboVelo2.texAtt0); //velocity
+            }
+        }
+        else if(this.flipFlopVelo == 2)
+        {
+            this.gl.bindTexture(this.gl.TEXTURE_2D, this.fboVelo1.texAtt0);  // velocity
+        }
+        this.shaderUpdateVelocities.seti("texVelocity", 0);
+
+
+        // bind updated position map
+        this.gl.activeTexture(this.gl.TEXTURE1);
+        if(this.flipFlopPos == 2)
+        {
+            this.gl.bindTexture(this.gl.TEXTURE_2D, this.fboPos1.texAtt0); //position
+        }
+        else
+        {
+            if(this.initRender) {
+                this.gl.bindTexture(this.gl.TEXTURE_2D, this.texPos); //position
+            }
+            else {
+                this.gl.bindTexture(this.gl.TEXTURE_2D, this.fboPos2.texAtt0); //position
+            }
+        }
+        this.shaderUpdateVelocities.seti("texPos", 1);
+
+
+        this.gl.activeTexture(this.gl.TEXTURE2);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.texColor);
+        this.shaderUpdateVelocities.seti("texColor", 2);
+
+
+        this.gl.activeTexture(this.gl.TEXTURE3);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.texPos);
+        this.shaderUpdateVelocities.seti("texInitPos", 3);
+
+        this.shaderUpdateVelocities.setf("curAnimationTime", this.curAnimationTime);
+        this.shaderUpdateVelocities.setf("texWidth", this.buffer_width);
+        this.shaderUpdateVelocities.setf("texHeight", this.buffer_height);
+        this.shaderUpdateVelocities.setf("initPosTransition", this.initPosTransition);
+
+        console.log(this.initPosTransition);
+        this.vboQuad.render();
+
+        this.shaderUpdateVelocities.release();
+
+        if(this.flipFlopVelo == 1)
+        {
+            this.fboVelo1.release();
+            this.flipFlopVelo = 2;
+        }
+        else if(this.flipFlopVelo == 2)
+        {
+            this.fboVelo2.release();
+            this.flipFlopVelo = 1;
+        }
+    },
+
+    updatePositions : function()
+    {
+        if(this.flipFlopPos == 1)
+            this.fboPos1.bind();
+
+        if(this.flipFlopPos == 2)
+            this.fboPos2.bind();
+
+        this.gl.viewport(0, 0, this.buffer_width, this.buffer_height);
+        this.gl.clearColor(1.0, 0.0, 0.0, 1.0);
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
         this.gl.disable(this.gl.BLEND);
 
@@ -296,52 +404,70 @@ Pixel.Core.Renderer.ParticleSystemImage.prototype = {
          var view       = new mat4().translateByVector(new vec3 (0, 0, -1));
          var projection = new mat4().orthographic(0, this.buffer_width, this.buffer_height, 0, -1, 1);
 
-         this.shaderUpdateParticles.bind();
+         this.shaderUpdatePositions.bind();
 
-         this.shaderUpdateParticles.setMatrix("matProjection", projection, false);
-         this.shaderUpdateParticles.setMatrix("matView", view, false);
-         this.shaderUpdateParticles.setMatrix("matModel", model, false);
+         this.shaderUpdatePositions.setMatrix("matProjection", projection, false);
+         this.shaderUpdatePositions.setMatrix("matView", view, false);
+         this.shaderUpdatePositions.setMatrix("matModel", model, false);
 
-        if(this.flipFlop == 1)
+
+        this.gl.activeTexture(this.gl.TEXTURE0);
+        if(this.flipFlopPos == 1)
         {
             if(this.initRender)
             {
-                this.gl.activeTexture(this.gl.TEXTURE4);
-                this.gl.bindTexture(this.gl.TEXTURE_2D, this.texPos); //position 1 // first 4 coordinates
+                this.gl.bindTexture(this.gl.TEXTURE_2D, this.texPos); //position
             }
             else
             {
-                this.gl.activeTexture(this.gl.TEXTURE4);
-                this.gl.bindTexture(this.gl.TEXTURE_2D, this.fbo2.texAtt0); //position 1 // first 4 coordinates
+                this.gl.bindTexture(this.gl.TEXTURE_2D, this.fboPos2.texAtt0); //position
             }
         }
-        else if(this.flipFlop == 2)
+        else if(this.flipFlopPos == 2)
         {
-            this.gl.activeTexture(this.gl.TEXTURE4);
-            this.gl.bindTexture(this.gl.TEXTURE_2D, this.fbo1.texAtt0); //position 1 // first 4 coordinates
+            this.gl.bindTexture(this.gl.TEXTURE_2D, this.fboPos1.texAtt0); //position
         }
+        this.shaderUpdatePositions.seti("texPos", 0);
 
-        this.shaderUpdateParticles.seti("texPos", 4);
 
-        this.gl.activeTexture(this.gl.TEXTURE5);
+        // bind updated velocity map
+        this.gl.activeTexture(this.gl.TEXTURE1);
+        if(this.flipFlopVelo == 2)
+        {
+            this.gl.bindTexture(this.gl.TEXTURE_2D, this.fboVelo1.texAtt0); //position
+        }
+        else
+        {
+            this.gl.bindTexture(this.gl.TEXTURE_2D, this.fboVelo2.texAtt0); //position
+        }
+        this.shaderUpdatePositions.seti("texVelocity", 1);
+
+
+        this.gl.activeTexture(this.gl.TEXTURE2);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.texColor);
-        this.shaderUpdateParticles.seti("texColor", 5);
+        this.shaderUpdatePositions.seti("texColor", 2);
 
-        this.shaderUpdateParticles.setf("curAnimationTime", this.curAnimationTime);
+        this.gl.activeTexture(this.gl.TEXTURE3);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.texPos);
+        this.shaderUpdatePositions.seti("texInitPos", 3);
+
+
+        this.shaderUpdatePositions.setf("curAnimationTime", this.curAnimationTime);
+        this.shaderUpdatePositions.setf("initPosTransition", this.initPosTransition);
 
             this.vboQuad.render();
 
-        this.shaderUpdateParticles.release();
+        this.shaderUpdatePositions.release();
 
-        if(this.flipFlop == 1)
+        if(this.flipFlopPos == 1)
         {
-            this.fbo1.release();
-            this.flipFlop = 2;
+            this.fboPos1.release();
+            this.flipFlopPos = 2;
         }
-        else if(this.flipFlop == 2)
+        else if(this.flipFlopPos == 2)
         {
-            this.fbo2.release();
-            this.flipFlop = 1;
+            this.fboPos2.release();
+            this.flipFlopPos = 1;
         }
 
         if(this.initRender)
@@ -353,9 +479,19 @@ Pixel.Core.Renderer.ParticleSystemImage.prototype = {
         if(fps > 0) {
             var delta = this.updateTime / fps * this.animationSpeed
             this.curAnimationTime += delta;
+
+            if(this.enableIntPosTransition) {
+                this.initPosTransition += delta;
+                if (this.initPosTransition > 1.0)
+                    this.initPosTransition = 1.0;
+            }
+            else{
+                this.initPosTransition = 0.0;
+            }
         }
 
-        this.updateParticles();
+        this.updateVelocities();
+        this.updatePositions();
 
         var trans = this.cam.currentPerspective();
         var model =  new mat4().translateByVector(this.center);
@@ -373,20 +509,20 @@ Pixel.Core.Renderer.ParticleSystemImage.prototype = {
 
         this.shaderParticles.bind();
 
-        if(this.flipFlop == 2){
-            this.gl.activeTexture(this.gl.TEXTURE1);
-            this.gl.bindTexture(this.gl.TEXTURE_2D, this.fbo1.texAtt0);
+        if(this.flipFlopPos == 2){
+            this.gl.activeTexture(this.gl.TEXTURE0);
+            this.gl.bindTexture(this.gl.TEXTURE_2D, this.fboPos1.texAtt0);
         }
         else{
-            this.gl.activeTexture(this.gl.TEXTURE1);
-            this.gl.bindTexture(this.gl.TEXTURE_2D, this.fbo2.texAtt0);
+            this.gl.activeTexture(this.gl.TEXTURE0);
+            this.gl.bindTexture(this.gl.TEXTURE_2D, this.fboPos2.texAtt0);
         }
 
-        this.shaderParticles.seti("texPos", 1);
+        this.shaderParticles.seti("texPos", 0);
 
-        this.gl.activeTexture(this.gl.TEXTURE2);
+        this.gl.activeTexture(this.gl.TEXTURE1);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.texColor);
-        this.shaderParticles.seti("texColor", 2);
+        this.shaderParticles.seti("texColor", 1);
 
 
         this.shaderParticles.setMatrix("matProjection", trans.projection, false);
