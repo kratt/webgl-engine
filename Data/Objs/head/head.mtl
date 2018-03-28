@@ -1,5 +1,4 @@
 newmtl defaultMat
-map_Kd lambertian.png
-map_bump -bm 0.001 bump-lowRes.png
+map_Kd lambertian.jpg
 Ks .0001 .0001 .0001
 Ns 128
